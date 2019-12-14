@@ -61,11 +61,12 @@ public class Main {
     tayyipAllTweets = normalizeTweets(tayyipAllTweets);
 
     StringBuilder csvBuilder = new StringBuilder();
-    csvBuilder.append("ORIGINAL_TWEET").append(",").append("DETECTED_WORDS").append(",")
-        .append("SENTIMENT_SCORE").append(lineSep);
+    csvBuilder.append("SENTIMENT_SCORE").append(lineSep);
+//    csvBuilder.append("ORIGINAL_TWEET").append(",").append("DETECTED_WORDS").append(",")
+//        .append("SENTIMENT_SCORE").append(lineSep);
 
     for (String tweet : tayyipAllTweets) {
-      csvBuilder.append(tweet).append(",");
+//      csvBuilder.append(tweet).append(",");
 
       String[] tweetWords = tweet.split(" ");
       Float totalScore = 0f;
@@ -106,7 +107,8 @@ public class Main {
       }
       String uniqueWordsStr = uniqueWords.size() == 0? "" : uniqueWordsBuilder.toString();
       uniqueWordsStr = uniqueWordsStr.length() > 0 ? uniqueWordsStr.substring(0, uniqueWordsStr.length() - 1) : "";
-      csvBuilder.append(uniqueWordsStr).append(",").append(totalScore).append(lineSep);
+      csvBuilder.append(totalScore).append(lineSep);
+//      csvBuilder.append(uniqueWordsStr).append(",").append(totalScore).append(lineSep);
     }
 
     File output = new File("tayyip.csv");
@@ -164,7 +166,7 @@ public class Main {
     }
     if (inputStream == null) {
       throw new IllegalStateException("Couldn't read mandatory resource:" + resource);
-    }//
+    }
     String[] results = IOUtils.toString(inputStream, encoding).split(System.lineSeparator());
     return new ArrayList<>(Arrays.asList(results));
   }
