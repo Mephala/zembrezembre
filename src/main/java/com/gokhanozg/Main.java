@@ -87,7 +87,7 @@ public class Main {
         }
         if (inputStream == null) {
             throw new IllegalStateException("Couldn't read mandatory resource:" + resource);
-        }
+        }//
         String[] results = IOUtils.toString(inputStream, encoding).split(System.lineSeparator());
         return new ArrayList<>(Arrays.asList(results));
     }
