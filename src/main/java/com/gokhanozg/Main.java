@@ -26,6 +26,7 @@ public class Main {
   private static final Locale locale = Locale.forLanguageTag("tr");
   private static String[] ignoredChars = {"#", "'", "\\.", ",", "!", "\\?", ":", ";"};
   private static final String lineSep = System.lineSeparator();
+  private static final String[] tweetOwners = {"tayyip", "kilicdar"};
 
   public static void main(String[] args) throws IOException {
     StopWatch stopWatch = new StopWatch();
@@ -57,64 +58,72 @@ public class Main {
 
     TurkishMorphology morphology = TurkishMorphology.createWithDefaults();
 
-    List<String> tayyipAllTweets = getResourceVals("tayyip");
-    tayyipAllTweets = normalizeTweets(tayyipAllTweets);
+    for (String tweetOwner : tweetOwners) {
 
-    StringBuilder csvBuilder = new StringBuilder();
-    csvBuilder.append("SENTIMENT_SCORE").append(lineSep);
+      System.out.println(String.format("Building score CSV for %s", tweetOwner));
+
+      List<String> tayyipAllTweets = getResourceVals(tweetOwner);
+      tayyipAllTweets = normalizeTweets(tayyipAllTweets);
+
+      StringBuilder csvBuilder = new StringBuilder();
+      csvBuilder.append("SENTIMENT_SCORE").append(lineSep);
 //    csvBuilder.append("ORIGINAL_TWEET").append(",").append("DETECTED_WORDS").append(",")
 //        .append("SENTIMENT_SCORE").append(lineSep);
 
-    for (String tweet : tayyipAllTweets) {
+      for (String tweet : tayyipAllTweets) {
 //      csvBuilder.append(tweet).append(",");
+        String[] tweetWords = tweet.split(" ");
+        Float totalScore = 0f;
+        Set<String> uniqueWords = new HashSet<>();
 
-      String[] tweetWords = tweet.split(" ");
-      Float totalScore = 0f;
-      Set<String> uniqueWords = new HashSet<>();
-
-
-
-      for (String tweetWord : tweetWords) {
-        tweetWord = removeIgnoredCharacters(tweetWord);
-        tweetWord = tweetWord.trim().toLowerCase(locale);
-        if (StringUtils.isBlank(tweetWord)) {
-          continue;
-        }
-        String[] normalizedTweets = tweetWord.split(" "); // removing chars might split word
-        for (String normalizedTweet : normalizedTweets) {
-          if (StringUtils.isBlank(normalizedTweet) || normalizedTweet.length() == 1) {
+        for (String tweetWord : tweetWords) {
+          tweetWord = removeIgnoredCharacters(tweetWord);
+          tweetWord = tweetWord.trim().toLowerCase(locale);
+          if (StringUtils.isBlank(tweetWord)) {
             continue;
           }
-          WordAnalysis wordAnalysis = morphology.analyze(normalizedTweet);
-          List<SingleAnalysis> singleAnalyses = wordAnalysis.getAnalysisResults();
-          for (SingleAnalysis singleAnalysis : singleAnalyses) {
-            String root = singleAnalysis.getDictionaryItem().root;
-            if (scoreMap.containsKey(root)) {
-              totalScore += scoreMap.get(root);
-              uniqueWords.add(root);
-            } else if ((!scoreMap.containsKey(root)) && (scoreMap
-                .containsKey(singleAnalysis.getDictionaryItem().lemma))) {
-              totalScore += scoreMap.get(singleAnalysis.getDictionaryItem().lemma);
-              uniqueWords.add(singleAnalysis.getDictionaryItem().lemma);
+          String[] normalizedTweets = tweetWord.split(" "); // removing chars might split word
+          for (String normalizedTweet : normalizedTweets) {
+            if (StringUtils.isBlank(normalizedTweet) || normalizedTweet.length() == 1) {
+              continue;
+            }
+            WordAnalysis wordAnalysis = morphology.analyze(normalizedTweet);
+            List<SingleAnalysis> singleAnalyses = wordAnalysis.getAnalysisResults();
+            for (SingleAnalysis singleAnalysis : singleAnalyses) {
+              String root = singleAnalysis.getDictionaryItem().root;
+              if (scoreMap.containsKey(root)) {
+                totalScore += scoreMap.get(root);
+                uniqueWords.add(root);
+              } else if ((!scoreMap.containsKey(root)) && (scoreMap
+                  .containsKey(singleAnalysis.getDictionaryItem().lemma))) {
+                totalScore += scoreMap.get(singleAnalysis.getDictionaryItem().lemma);
+                uniqueWords.add(singleAnalysis.getDictionaryItem().lemma);
+              }
             }
           }
         }
+
+        StringBuilder uniqueWordsBuilder = new StringBuilder();
+        for (String uniqueWord : uniqueWords) {
+          uniqueWordsBuilder.append(uniqueWord).append("|");
+        }
+        String uniqueWordsStr = uniqueWords.size() == 0 ? "" : uniqueWordsBuilder.toString();
+        uniqueWordsStr =
+            uniqueWordsStr.length() > 0 ? uniqueWordsStr.substring(0, uniqueWordsStr.length() - 1)
+                : "";
+        csvBuilder.append(totalScore).append(lineSep);
+//      csvBuilder.append(uniqueWordsStr).append(",").append(totalScore).append(lineSep);
       }
 
-      StringBuilder uniqueWordsBuilder = new StringBuilder();
-      for (String uniqueWord : uniqueWords) {
-        uniqueWordsBuilder.append(uniqueWord).append("|");
-      }
-      String uniqueWordsStr = uniqueWords.size() == 0? "" : uniqueWordsBuilder.toString();
-      uniqueWordsStr = uniqueWordsStr.length() > 0 ? uniqueWordsStr.substring(0, uniqueWordsStr.length() - 1) : "";
-      csvBuilder.append(totalScore).append(lineSep);
-//      csvBuilder.append(uniqueWordsStr).append(",").append(totalScore).append(lineSep);
+      File output = new File(tweetOwner + ".csv");
+      String outputStr = csvBuilder.toString();
+
+      FileUtils.writeStringToFile(output, outputStr, "utf-8");
+      stopWatch.split();
+      elapsed = stopWatch.getSplitTime();
+      System.out.println(String.format("Completed creating CSV for %s in %s milliseconds", tweetOwner, elapsed));
     }
 
-    File output = new File("tayyip.csv");
-    String outputStr = csvBuilder.toString();
-
-    FileUtils.writeStringToFile(output, outputStr, "utf-8");
     stopWatch.stop();
     elapsed = stopWatch.getTime();
     System.out.println(String.format("Completed all in %s milliseconds", elapsed));
