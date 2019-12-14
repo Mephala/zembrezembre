@@ -26,6 +26,8 @@ public class Main {
         System.out.println("Preparing score maps...");
         List<String> words = getResourceVals("words");
         List<String> vals = getResourceVals("vals");
+        List<String> pvals = getResourceVals("pvals");
+        List<String> nvals = getResourceVals("nvals");
 
         Map<String, Float> scoreMap = new HashMap<>();
 
@@ -33,8 +35,9 @@ public class Main {
         for (int i = 0; i < len; i++) {
             String wordsElement = words.get(i);
             String[] cswords = wordsElement.split(",");
-            String scoreStr = vals.get(i);
-            Float score = StringUtils.isEmpty(scoreStr) ? 0f : Float.parseFloat(scoreStr);
+            String pScoreStr = pvals.get(i);
+            String nScoreStr = nvals.get(i);
+            Float score = calculateObjectiveScore(pScoreStr, nScoreStr);
             for (String csword : cswords) {
                 scoreMap.put(csword.trim(), score);
             }
@@ -78,6 +81,21 @@ public class Main {
         stopWatch.stop();
         elapsed = stopWatch.getTime();
         System.out.println(String.format("Completed all in %s milliseconds", elapsed));
+    }
+
+    private static Float calculateObjectiveScore(String pScoreStr, String nScoreStr) {
+        float p = 0;
+        float n = 0;
+        if(StringUtils.isNotBlank(pScoreStr)){
+            p = Float.parseFloat(pScoreStr);
+        }
+        if(StringUtils.isNotBlank(nScoreStr)){
+            n = Float.parseFloat(nScoreStr);
+        }
+        if(n>0){
+            n = -n;
+        }
+        return p + n;
     }
 
     private static List<String> getResourceVals(String resource) throws IOException {
