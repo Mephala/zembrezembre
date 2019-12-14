@@ -67,17 +67,23 @@ public class Main {
       if (StringUtils.isBlank(tweetWord)) {
         continue;
       }
-      WordAnalysis wordAnalysis = morphology.analyze(tweetWord);
-      List<SingleAnalysis> singleAnalyses = wordAnalysis.getAnalysisResults();
-      for (SingleAnalysis singleAnalysis : singleAnalyses) {
-        String root = singleAnalysis.getDictionaryItem().root;
-        if (scoreMap.containsKey(root)) {
-          totalScore += scoreMap.get(root);
-          uniqueWords.add(root);
-        } else if ((!scoreMap.containsKey(root)) && (scoreMap
-            .containsKey(singleAnalysis.getDictionaryItem().lemma))) {
-          totalScore += scoreMap.get(singleAnalysis.getDictionaryItem().lemma);
-          uniqueWords.add(singleAnalysis.getDictionaryItem().lemma);
+      String[] normalizedTweets = tweetWord.split(" "); // removing chars might split word
+      for (String normalizedTweet : normalizedTweets) {
+        if (StringUtils.isBlank(normalizedTweet) || normalizedTweet.length() == 1) {
+          continue;
+        }
+        WordAnalysis wordAnalysis = morphology.analyze(normalizedTweet);
+        List<SingleAnalysis> singleAnalyses = wordAnalysis.getAnalysisResults();
+        for (SingleAnalysis singleAnalysis : singleAnalyses) {
+          String root = singleAnalysis.getDictionaryItem().root;
+          if (scoreMap.containsKey(root)) {
+            totalScore += scoreMap.get(root);
+            uniqueWords.add(root);
+          } else if ((!scoreMap.containsKey(root)) && (scoreMap
+              .containsKey(singleAnalysis.getDictionaryItem().lemma))) {
+            totalScore += scoreMap.get(singleAnalysis.getDictionaryItem().lemma);
+            uniqueWords.add(singleAnalysis.getDictionaryItem().lemma);
+          }
         }
       }
     }
