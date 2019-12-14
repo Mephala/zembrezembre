@@ -4,7 +4,7 @@ import java.util.Objects;
 
 public class Word implements Comparable<Word> {
     private String value; // word itself
-    private Integer count;
+    private Integer count; // repetition count.
 
     public Word(String value, Integer count) {
         this.value = value;
