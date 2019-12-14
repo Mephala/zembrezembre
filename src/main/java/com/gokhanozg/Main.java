@@ -24,6 +24,7 @@ public class Main {
 
   private static final String encoding = "utf-8";
   private static final Locale locale = Locale.forLanguageTag("tr");
+  private static String[] ignoredChars = {"#", "'", "\\.", ",", "!", "\\?", ":", ";"};
 
   public static void main(String[] args) throws IOException {
     StopWatch stopWatch = new StopWatch();
@@ -61,7 +62,11 @@ public class Main {
     TurkishMorphology morphology = TurkishMorphology.createWithDefaults();
 
     for (String tweetWord : tweetWords) {
+      tweetWord = removeIgnoredCharacters(tweetWord);
       tweetWord = tweetWord.trim().toLowerCase(locale);
+      if (StringUtils.isBlank(tweetWord)) {
+        continue;
+      }
       WordAnalysis wordAnalysis = morphology.analyze(tweetWord);
       List<SingleAnalysis> singleAnalyses = wordAnalysis.getAnalysisResults();
       for (SingleAnalysis singleAnalysis : singleAnalyses) {
@@ -91,6 +96,13 @@ public class Main {
     stopWatch.stop();
     elapsed = stopWatch.getTime();
     System.out.println(String.format("Completed all in %s milliseconds", elapsed));
+  }
+
+  private static String removeIgnoredCharacters(String tweetWord) {
+    for (String ignoredChar : ignoredChars) {
+      tweetWord = tweetWord.replaceAll(ignoredChar, " ");
+    }
+    return tweetWord;
   }
 
   private static Float calculateObjectiveScore(String pScoreStr, String nScoreStr) {
