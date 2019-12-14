@@ -1,8 +1,4 @@
 test
-nefret
 egemen
-orospu
 incir
-tiksinç
-iğrenç
--3.4959996
+0.45000002

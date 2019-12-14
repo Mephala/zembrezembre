@@ -1,24 +1,27 @@
 package com.gokhanozg;
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import zemberek.core.io.Words;
 import zemberek.morphology.TurkishMorphology;
 import zemberek.morphology.analysis.SingleAnalysis;
 import zemberek.morphology.analysis.WordAnalysis;
-import zemberek.tokenization.TurkishSentenceExtractor;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.*;
 
 public class Main {
     private static final String encoding = "utf-8";
+    private static final Locale locale = Locale.forLanguageTag("tr");
 
     public static void main(String[] args) throws IOException {
         StopWatch stopWatch = new StopWatch();
@@ -39,7 +42,8 @@ public class Main {
             String nScoreStr = nvals.get(i);
             Float score = calculateObjectiveScore(pScoreStr, nScoreStr);
             for (String csword : cswords) {
-                scoreMap.put(csword.trim(), score);
+                String trimmedLowercase = csword.trim().toLowerCase(locale);
+                scoreMap.put(trimmedLowercase, score);
             }
         }
         stopWatch.split();
@@ -55,6 +59,7 @@ public class Main {
         TurkishMorphology morphology = TurkishMorphology.createWithDefaults();
 
         for (String tweetWord : tweetWords) {
+            tweetWord = tweetWord.trim().toLowerCase(locale);
             WordAnalysis wordAnalysis = morphology.analyze(tweetWord);
             List<SingleAnalysis> singleAnalyses = wordAnalysis.getAnalysisResults();
             for (SingleAnalysis singleAnalysis : singleAnalyses) {
